@@ -16,7 +16,7 @@
 
 # sample code
 
-
+```
 main :
 LI x4,4
 LI x5,5
@@ -35,4 +35,4 @@ LI x6,100
 JALR x10, x9, 0
 CUSTOM:
 exit
-
+```
