@@ -19,7 +19,18 @@ std::string trim(const std::string &s)
     return std::string(it, rit.base());
 }
 
-int reg[32] = { 0 };
+class regi{
+public:
+   int var;
+   bool isAddr;
+
+   regi(){
+       var=0;
+       isAddr=false;
+   }
+};
+
+class regi reg[32];
 int pc;
 int mem[1000];
 map<string, int> reg_map;
@@ -161,7 +172,7 @@ bool inst_decode(string Line) {
     for (; i < Line.length();) {
         for (; j < Line.length(); j++) {
             if (Line[j] == ' ' || Line[j] == ',' || j == Line.length() - 1) {
-                cout<<count<<" ";
+                
                 if (j == Line.length() - 1) { j++; }
 
                 if (count == 0) {
@@ -361,7 +372,7 @@ bool inst_decode(string Line) {
         i = j;
     }
     inst.type = type;
-    
+   
     return execute(inst);
 
 }
@@ -372,10 +383,10 @@ bool execute( instruction inst) {
     
     if(inst.type=="R_type"){
         if (inst.opcode == "add") {
-            temp = reg[inst.rs1] + reg[inst.rs2];
+            temp = reg[inst.rs1].var + reg[inst.rs2].var;
         }
         else if(inst.opcode=="slt"){
-            if(reg[inst.rs1] < reg[inst.rs2]){
+            if(reg[inst.rs1].var < reg[inst.rs2].var){
                 temp=1;
             }
             else{
@@ -383,30 +394,30 @@ bool execute( instruction inst) {
             }
         }
         else if(inst.opcode=="and"){
-            temp = reg[inst.rs1] & reg[inst.rs2];
+            temp = reg[inst.rs1].var & reg[inst.rs2].var;
         }
         else if(inst.opcode=="or"){
-            temp = reg[inst.rs1] | reg[inst.rs2];
+            temp = reg[inst.rs1].var | reg[inst.rs2].var;
         }
         else if(inst.opcode=="xor"){
-            temp = reg[inst.rs1] ^ reg[inst.rs2];
+            temp = reg[inst.rs1].var ^ reg[inst.rs2].var;
         }
         else if(inst.opcode=="sll"){
-            temp = reg[inst.rs1] << reg[inst.rs2];
+            temp = reg[inst.rs1].var << reg[inst.rs2].var;
         }
         else if(inst.opcode=="srl"){
-            temp = reg[inst.rs1] >> reg[inst.rs2];
+            temp = reg[inst.rs1].var >> reg[inst.rs2].var;
         }
         else if(inst.opcode=="sub"){
-            temp = reg[inst.rs1] - reg[inst.rs2];
+            temp = reg[inst.rs1].var - reg[inst.rs2].var;
         }
     }
     else if (inst.type == "I_type") {
         if (inst.opcode == "addi") {
-            temp = reg[inst.rs1] + inst.imd;
+            temp = reg[inst.rs1].var + inst.imd;
         }
         else if (inst.opcode == "slti") {
-            if(reg[inst.rs1] < inst.imd){
+            if(reg[inst.rs1].var < inst.imd){
                 temp=1;
             }
             else{
@@ -414,24 +425,24 @@ bool execute( instruction inst) {
             }
         }
         else if (inst.opcode == "andi") {
-            temp = reg[inst.rs1] & inst.imd;
+            temp = reg[inst.rs1].var & inst.imd;
         }
         else if (inst.opcode == "ori") {
-            temp = reg[inst.rs1] | inst.imd;
+            temp = reg[inst.rs1].var | inst.imd;
         }
         else if (inst.opcode == "xori") {
-            temp = reg[inst.rs1] ^ inst.imd;
+            temp = reg[inst.rs1].var ^ inst.imd;
         }
         else if (inst.opcode == "jalr") {  
             temp=pc;
-            pc = reg[inst.rs1]+inst.imd;
+            pc = reg[inst.rs1].var+inst.imd;
         }
     }
     else if (inst.type == "B_type") {
         if (inst.opcode == "beq") {
             
             
-            if(reg[inst.rs1] == reg[inst.rs2]){
+            if(reg[inst.rs1].var == reg[inst.rs2].var){
                 auto itr = tags.begin();
 
                 for(;itr!=tags.end();itr++){
@@ -452,12 +463,12 @@ bool execute( instruction inst) {
         else if (inst.opcode == "bne") {
             
 
-            if(reg[inst.rs1] != reg[inst.rs2]){
-                cout<<"myself"<<"    "<<"hello"<<inst.label<<"hello";
+            if(reg[inst.rs1].var != reg[inst.rs2].var){
+                
                 auto itr = tags.begin();
                 
                 for(;itr!=tags.end();itr++){
-                    cout<<"\n"<<itr->first<<"hello"<<"\n";
+                    
                     if(itr->first==inst.label){
                         break;
                     }
@@ -474,7 +485,7 @@ bool execute( instruction inst) {
         else if (inst.opcode == "blt") {
             
 
-            if(reg[inst.rs1] < reg[inst.rs2]){
+            if(reg[inst.rs1].var < reg[inst.rs2].var){
                 auto itr = tags.begin();
 
                 for(;itr!=tags.end();itr++){
@@ -494,7 +505,7 @@ bool execute( instruction inst) {
         else if (inst.opcode == "bge") {
             
 
-            if(reg[inst.rs1] >= reg[inst.rs2]){
+            if(reg[inst.rs1].var >= reg[inst.rs2].var){
                 auto itr = tags.begin();
 
                 for(;itr!=tags.end();itr++){
@@ -524,10 +535,10 @@ bool execute( instruction inst) {
          }
     }
     else if(inst.type=="Load_type"){
-        temp=inst.offset+reg[inst.rs1];
+        temp=inst.offset+reg[inst.rs1].var;
     }
     else if(inst.type=="Store_type"){
-        temp=inst.offset+reg[inst.rs2];
+        temp=inst.offset+reg[inst.rs2].var;
         
     }
 
@@ -550,7 +561,9 @@ bool memory(instruction inst, int ex_mem) {
 bool write_back(instruction inst, int mem_wb) {
     if(inst.type == "R_type" || inst.type == "I_type" || inst.type == "J_type" || inst.type=="Load_type") {
         if(inst.rd!=0){
-            reg[inst.rd] = mem_wb;
+            
+            reg[inst.rd].var = mem_wb;
+            
         }
         return true;
     }
@@ -559,7 +572,7 @@ bool write_back(instruction inst, int mem_wb) {
     }
     else if(inst.type == "Store_type"){
         
-        mem[mem_wb]=reg[inst.rs1];
+        mem[mem_wb]=reg[inst.rs1].var;
         return true;
     }
     return false;
@@ -629,6 +642,7 @@ void parser(string input) {
 
         }
         else {
+            
             string error="Error in Line number " + to_string(Lines[--pc].first);
             errors.push_back(error);
             break;
@@ -656,4 +670,6 @@ void stimulator(string input) {
     pc = 0;
     create_map(reg_map);
     parser(input);
+    
 }
+
