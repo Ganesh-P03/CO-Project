@@ -1,6 +1,6 @@
 #include <iostream>
 #include <map>
-#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include<exception>
@@ -567,14 +567,18 @@ bool write_back(instruction inst, int mem_wb) {
 
 
 
-void parser() {
-    std::ifstream file("input.txt");
+
+void parser(string input) {
+
+    input=trim(input);
+    stringstream ss(input);
     std::string str;
     vector<pair<int, string>>Lines;
     int inst_number = 1;
     bool isTag=false;
     int i=0;
-    while (std::getline(file, str))
+
+    while (std::getline(ss,str,'\n'))
     {   
         if(str.find('#')!=std::string::npos){
             str= trim(str.substr(0,str.find('#')));
@@ -616,7 +620,7 @@ void parser() {
         inst_number++;
     }
 
-    file.close();
+    
 
 
 
@@ -648,8 +652,8 @@ void create_map(map<string, int>& reg_map) {
 
 
 
-void stimulator() {
+void stimulator(string input) {
     pc = 0;
     create_map(reg_map);
-    parser();
+    parser(input);
 }
