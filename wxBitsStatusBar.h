@@ -27,14 +27,29 @@ public:
     
 
 
+    private:
+
+        enum {
+            Field_text,
+            Field_powBitmap,
+            Field_clockbutton,
+            Field_clock,
+            Field_flag,
+            Field_max
+        };
 
 
     bool isPowerManagerOn;
     bool isClockShown;
+    int widths[Field_max];
+
     wxStaticBitmap* powerOnOffBitmap;
     wxBitmapButton* showOrhide;
+    wxStaticBitmap* IndiaRussiaFlag;
 
-    void showClock(bool val);
+    void OnShowOrHideClick(wxCommandEvent& eve);
+    void OnSize(wxSizeEvent &eve);
+    void ArrangeControlsOnSizeEvemt();
 
     wxDECLARE_EVENT_TABLE();
 };

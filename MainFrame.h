@@ -19,6 +19,8 @@
 #include "wxBitsStatusBar.h"
 #endif
 
+
+
 #if defined(__WXMSW__) && wxUSE_TASKBARICON
 #include "wx/taskbar.h"
 #endif // wxUSE_TASKBARICON
@@ -82,7 +84,11 @@
 #define USE_FONTDLG_GENERIC \
     ((USE_WXMSW || USE_WXMACFONTDLG) && USE_GENERIC_DIALOGS && wxUSE_FONTDLG)
 
+#include <wx/treectrl.h>
 
+#ifdef  wxUSE_LISTCTRL
+#include <wx/listctrl.h>
+#endif
 
 //Window id's Used in complete App
 enum Menu_id{
@@ -154,11 +160,301 @@ enum Menu_id{
 	Menu_recent_file2,
 	Menu_recent_file3,
 
+	power_manager_id,
+	
 	Menu_Context,
 	dummy
 
 };
 
+class wxBitsTreeCtrl :public wxTreeCtrl {
+public :
+	wxBitsTreeCtrl(wxWindow *parent):wxTreeCtrl(parent,-1,wxDefaultPosition,wxDefaultSize,wxTR_TWIST_BUTTONS) {
+		AddRoot("Just waste");
+	}
+	void LoadDirInTree(wxString dir) {
+
+	}
+	void UnloadDirInTree() {
+		DeleteAllItems();
+	}
+
+};
+
+class MainNotePage :public wxPanel {
+
+public:
+	MainNotePage(wxWindow* parent, bool isStart) :wxPanel(parent, wxID_ANY, wxDefaultPosition),isStart(isStart)
+	{
+		int h = GetParent()->GetClientRect().GetHeight();
+		int w = GetParent()->GetClientRect().GetWidth();
+		SetSize(w,h);
+		if (!isStart)
+		{
+			notepad = new wxStyledTextCtrl(this, -1,wxDefaultPosition,wxSize(w,h));
+		}
+		else{
+			CreateStartPage();
+		}
+	}
+	void CreateStartPage() {
+		wxStaticText* startText = new wxStaticText(this, -1, "Start Text", wxPoint(100,100), wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+
+	}
+	wxStyledTextCtrl* notepad;
+	bool isStart;
+};
+
+class wxBitsFolderTree :public wxFrame {
+public:
+	wxBitsFolderTree(wxWindow* parent);
+	    void LoadDir(wxString dir);
+		void UnLoadDir();
+	wxBitsTreeCtrl* tree;
+	bool isTreeLoaded;
+
+};
+
+
+class RegisterGridPanel :public wxPanel
+{
+public :
+	RegisterGridPanel(wxWindow *parent):wxPanel(parent,-1)
+	{
+		int h = GetParent()->GetClientRect().GetHeight();
+		int w = GetParent()->GetClientRect().GetWidth();
+		SetSize(w, h);
+		regList = new wxListCtrl(this, -1,wxDefaultPosition,wxSize(w,h),wxLC_REPORT);
+		regList->AppendColumn("Register");
+		regList->AppendColumn("ABI Name");
+		regList->AppendColumn("Description");
+		regList->AppendColumn("Value ");
+		regList->SetColumnWidth(0, 100);
+		reg = new wxListItem * [32];
+		regVal = new wxListItem * [32];
+		regABIName = new wxListItem * [32];
+		regDesciption = new wxListItem * [32];
+		//regList->EnableAlternateRowColours();
+
+		for (int i = 0; i < 32; i++)
+		{
+			reg[i] = new wxListItem();
+			regVal[i] = new wxListItem();
+			regABIName[i] = new wxListItem();
+			regDesciption[i] = new wxListItem();
+
+			if (i == 0)
+			{
+				reg[i]->SetId(i);
+				reg[i]->SetText(wxString::Format("x%d", i));
+				reg[i]->SetColumn(0);
+
+				regVal[i]->SetId(i);
+				regVal[i]->SetText("");
+				regVal[i]->SetColumn(3);
+
+				regABIName[i]->SetId(i);
+				regABIName[i]->SetText("zero");
+				regABIName[i]->SetColumn(1);
+
+				regDesciption[i]->SetId(i);
+				regDesciption[i]->SetText("hardwired zero");
+				regDesciption[i]->SetColumn(2);
+			}
+			else if (i==1)
+			{
+				reg[i]->SetId(i);
+				reg[i]->SetText(wxString::Format("x%d", i));
+				reg[i]->SetColumn(0);
+
+				regVal[i]->SetId(i);
+				regVal[i]->SetText("");
+				regVal[i]->SetColumn(3);
+
+				regABIName[i]->SetId(i);
+				regABIName[i]->SetText("ra");
+				regABIName[i]->SetColumn(1);
+
+				regDesciption[i]->SetId(i);
+				regDesciption[i]->SetText("return address");
+				regDesciption[i]->SetColumn(2);
+			}
+			else if (i == 2)
+			{
+				reg[i]->SetId(i);
+				reg[i]->SetText(wxString::Format("x%d", i));
+				reg[i]->SetColumn(0);
+
+				regVal[i]->SetId(i);
+				regVal[i]->SetText("");
+				regVal[i]->SetColumn(3);
+
+				regABIName[i]->SetId(i);
+				regABIName[i]->SetText("sp");
+				regABIName[i]->SetColumn(1);
+
+				regDesciption[i]->SetId(i);
+				regDesciption[i]->SetText("stack pointer");
+				regDesciption[i]->SetColumn(2);
+			}
+			else if (i == 3)
+			{
+				reg[i]->SetId(i);
+				reg[i]->SetText(wxString::Format("x%d", i));
+				reg[i]->SetColumn(0);
+
+				regVal[i]->SetId(i);
+				regVal[i]->SetText("");
+				regVal[i]->SetColumn(3);
+
+				regABIName[i]->SetId(i);
+				regABIName[i]->SetText("gp");
+				regABIName[i]->SetColumn(1);
+
+				regDesciption[i]->SetId(i);
+				regDesciption[i]->SetText("global pointer");
+				regDesciption[i]->SetColumn(2);
+			}
+			else if (i == 4)
+			{
+				reg[i]->SetId(i);
+				reg[i]->SetText(wxString::Format("x%d", i));
+				reg[i]->SetColumn(0);
+
+				regVal[i]->SetId(i);
+				regVal[i]->SetText("");
+				regVal[i]->SetColumn(3);
+
+				regABIName[i]->SetId(i);
+				regABIName[i]->SetText("tp");
+				regABIName[i]->SetColumn(1);
+
+				regDesciption[i]->SetId(i);
+				regDesciption[i]->SetText("thread pointer");
+				regDesciption[i]->SetColumn(2);
+			}
+			else if (i>=5&&i<=7)
+			{
+			reg[i]->SetId(i);
+			reg[i]->SetText(wxString::Format("x%d", i));
+			reg[i]->SetColumn(0);
+
+			regVal[i]->SetId(i);
+			regVal[i]->SetText("");
+			regVal[i]->SetColumn(3);
+
+			regABIName[i]->SetId(i);
+			regABIName[i]->SetText(wxString::Format("t%d",i-5));
+			regABIName[i]->SetColumn(1);
+
+			regDesciption[i]->SetId(i);
+			regDesciption[i]->SetText(wxString::Format("temporary register %d", i - 5));
+			regDesciption[i]->SetColumn(2);
+			}
+			else if (i == 8||i==9)
+			{
+			reg[i]->SetId(i);
+			reg[i]->SetText(wxString::Format("x%d", i));
+			reg[i]->SetColumn(0);
+
+			regVal[i]->SetId(i);
+			regVal[i]->SetText("");
+			regVal[i]->SetColumn(3);
+
+			regABIName[i]->SetId(i);
+			regABIName[i]->SetText(wxString::Format("s%d", i - 8));
+			regABIName[i]->SetColumn(1);
+
+			regDesciption[i]->SetId(i);
+			regDesciption[i]->SetText(wxString::Format("saved register %d", i - 8));
+			regDesciption[i]->SetColumn(2);
+			}
+			else if (i >=10&&i <=17)
+			{
+			reg[i]->SetId(i);
+			reg[i]->SetText(wxString::Format("x%d", i));
+			reg[i]->SetColumn(0);
+
+			regVal[i]->SetId(i);
+			regVal[i]->SetText("");
+			regVal[i]->SetColumn(3);
+
+			regABIName[i]->SetId(i);
+			regABIName[i]->SetText(wxString::Format("a%d", i - 10));
+			regABIName[i]->SetColumn(1);
+
+			regDesciption[i]->SetId(i);
+			regDesciption[i]->SetText(wxString::Format("function argument %d", i - 10));
+			regDesciption[i]->SetColumn(2);
+			}
+			else if (i>=18&& i<=27)
+			{
+			reg[i]->SetId(i);
+			reg[i]->SetText(wxString::Format("x%d", i));
+			reg[i]->SetColumn(0);
+
+			regVal[i]->SetId(i);
+			regVal[i]->SetText("");
+			regVal[i]->SetColumn(3);
+
+			regABIName[i]->SetId(i);
+			regABIName[i]->SetText(wxString::Format("s%d", i - 16));
+			regABIName[i]->SetColumn(1);
+
+			regDesciption[i]->SetId(i);
+			regDesciption[i]->SetText(wxString::Format("saved register %d", i - 16));
+			regDesciption[i]->SetColumn(2);
+			}
+			else
+			{
+			reg[i]->SetId(i);
+			reg[i]->SetText(wxString::Format("x%d", i));
+			reg[i]->SetColumn(0);
+
+			regVal[i]->SetId(i);
+			regVal[i]->SetText("");
+			regVal[i]->SetColumn(3);
+
+			regABIName[i]->SetId(i);
+			regABIName[i]->SetText(wxString::Format("t%d", i - 25));
+			regABIName[i]->SetColumn(1);
+
+			regDesciption[i]->SetId(i);
+			regDesciption[i]->SetText(wxString::Format("temporary register %d", i - 25));
+			regDesciption[i]->SetColumn(2);
+			}
+
+			regList->InsertItem(*reg[i]);
+			regList->SetItem(*regVal[i]);
+			regList->SetItem(*regABIName[i]);
+			regList->SetItem(*regDesciption[i]);
+
+		}
+
+	}
+	void SetAllZero() {
+		for (int i = 0; i < 32; i++)
+		{
+			regVal[i]->SetText("0");
+		}
+	}
+	void LoadRegisterGrid();
+
+	wxListCtrl* regList;
+	wxListItem** reg;
+	wxListItem** regVal;
+	wxListItem** regABIName;
+	wxListItem** regDesciption;
+
+	wxButton* setAll;
+	wxButton* hideDesciption;
+	wxButton* hideABIName;
+
+};
+
+class MemoryGridPanel :public wxPanel {
+
+};
 
 class MainFrame :public wxFrame
 {
@@ -170,8 +466,8 @@ public:
 	//void LoadFileText(wxString& fileName, int indexInNote);
 	void InitFull();
 
-private :
 
+	int duplicatesNum;
 	int activeNotes;
 	bool showAtStart;
 	bool show_statBar;
@@ -181,22 +477,23 @@ private :
 	bool isConsoleVisible;                // oNclose event , we need to get parent and update this 
 	bool isTodoListFrmVisible;
 	bool allowGeneric;
+	bool doesContainDir;
+private:
 
 
-
-	wxMenu* contextMenu;
+	wxMenu* contextMenu;       //com
 	wxMenu* clipBoardHis;
-
+	wxMenu* toolContextMenu;   // com
+	wxString* presentDir;      //com
 
 
 	wxDialog* codesnpDlg; // user need to select code snippet form here
 	
-	wxPanel* startPage;
-	
 	wxNotebook* mainNote;
-	wxNotebook* registerNote;
-	wxPanel* regGrid;
-	wxFrame* treeFrmae;
+	wxNotebook* registerMainNote;
+	wxPanel* registerGrid;
+	
+	wxBitsFolderTree* treeFrame;
 	wxFrame* consoleFrame;
 	wxFrame* todoListFrame;
 
@@ -204,10 +501,6 @@ private :
 	wxBitsStatusBar* m_statBar;
 	wxToolBar* m_toolBar;
 
-	bool IsNativeExistsBgColourChoose();
-	bool IsNativeExistsFgColourChoose();
-	bool IsNativeExistsFileChoose();
-	bool IsNativeExistsDirChoose();
 
 	void InitMenuBar();//Init Menu bar + context Menu
 	void InitStatBar();
@@ -216,18 +509,19 @@ private :
 	void InitRegGrid();
 	void InitTreeCtrl();
 	void ShowTip();
+	void UpdateTreeFrame();
 
-
-	void AddPage();
-	wxPanel* CreateStartPage();
-	wxPanel* CreateEmptyPage();
+	MainNotePage* GetPageOnMainNoteIndex(int index);
+	void MainNoteAddPage(MainNotePage *pg);
+	MainNotePage* CreateStartPage();
+	MainNotePage* CreateEmptyPage();
 	void RemovePage();
 
 
 
 	wxString OpenFileDlg(wxString& wildCards);
-	wxString OpenDirDlg();
-	
+	void OpenDirDlg();
+	int GetNumberFromUser(int present, int min, int max);
 
 
 
@@ -302,6 +596,8 @@ private :
 #else
 	void OnRightClick(wxMouseEvent& eve);
 #endif
+	void OnToolContextMenu(wxCommandEvent& eve);
+
 
 	DECLARE_EVENT_TABLE();
 

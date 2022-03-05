@@ -19,22 +19,33 @@
 
 #include <wx/generic/aboutdlgg.h>
 
+#include "AppGlobals.h"
 
-wxAboutDialogInfo* wxBitsabtinfo;
+#include <wx/statline.h>
+
+
+
 
 
 
 class wBAboutDialog :public  wxGenericAboutDialog {
 
 public :
-	wBAboutDialog() :wxGenericAboutDialog()
+	wBAboutDialog(wxWindow *parent,wxAboutDialogInfo info)
 	{
-		wxBitsabtinfo = new wxAboutDialogInfo();
 		
-	
-		
+		Create(info,parent);
 
 	}
+
+	virtual void DoAddCustomControls() wxOVERRIDE
+	{
+		AddCollapsiblePane("Compiler Developer", "Ganesh");
+		AddControl(new wxStaticLine(this), wxSizerFlags().Expand());
+		AddText("Thanks for using the App");
+		AddControl(new wxStaticLine(this), wxSizerFlags().Expand());
+	}
+	
 
 
 };
