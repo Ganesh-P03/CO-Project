@@ -18,21 +18,21 @@
 
 ```
 main :
-LI x4,4
-LI x5,5
-LI x2,3
-LI x1,2
-SW x1,0(x2)
-ADD x1 , x1, x2
-JAL x9 , 3
-ADDI x5 , x5, 10
-BGE x6,x2,CUSTOM
+li x4,4
+li x5,5
+li x2,3
+li x1,2
+sw x1,0(x2)
+add x1 , x1, x2
+jal x9 , 3
+addi x5 , x5, 10
+bge x6,x2,CUSTOM
 
-ADD x3 ,x4,x5
-ADDI x3, x3, 1
-ADDI x4 , x4, 10
-LI x6,100
-JALR x10, x9, 0
+add x3 ,x4,x5
+addi x3, x3, 1
+addi x4 , x4, 10
+li x6,100
+jalr x10, x9, 0
 CUSTOM:
 exit
 ```
