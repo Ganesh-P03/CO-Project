@@ -1,10 +1,4 @@
-#include <iostream>
-#include <map>
-#include <sstream>
-#include <string>
-#include <vector>
-#include<exception>
-using namespace std;
+#include <stimulator.h>
 
 std::string trim(const std::string &s)
 {
@@ -19,54 +13,6 @@ std::string trim(const std::string &s)
     return std::string(it, rit.base());
 }
 
-class regi{
-public:
-   int var;
-   bool isAddr;
-
-   regi(){
-       var=0;
-       isAddr=false;
-   }
-};
-
-class regi reg[32];
-int pc;
-int mem[1000];
-map<string, int> reg_map;
-vector<pair<string,int>>tags;
-vector<string>errors;
-
-//types of instructions
-
-string R_type[] = { "add","slt","sltu","and","or","xor","sll","srl","sub","sra" };
-string I_type[] = { "addi","slti","sliu","andi","ori","xori","jalr" };
-string B_type[] = { "beq","bne","blt","bltu","bge","bgeu" };
-string J_type[] = { "jal","li" };
-string Load_type[] = { "lw" };
-string Store_type[] = { "sw" };
-
-
-
-//instruction
-class instruction {
-public:
-    string type;
-    string opcode;
-    string label;
-    int rd, rs1, rs2;
-    int offset;
-    int imd;
-};
-
-//functions
-bool inst_fetch(vector<pair<int, string>>Lines);
-bool inst_decode(string Line);
-bool execute(instruction inst);
-bool write_back(instruction inst, int mem_wb);
-bool memory(instruction inst, int ex_mem);
-
-
 //fetches the instructons based on pc
 bool inst_fetch(vector<pair<int, string>>Lines) {
     if (pc == -1) { return true; }
@@ -78,7 +24,7 @@ bool inst_fetch(vector<pair<int, string>>Lines) {
 
 //decodes fetched instruction
 bool inst_decode(string Line) {
-
+    
     if (Line == "exit") { pc = -1; return true; }
 
     instruction inst;
@@ -86,7 +32,19 @@ bool inst_decode(string Line) {
     string type;
 
     //finding the type of instruction
-     int n = sizeof(I_type) / sizeof(I_type[0]);
+   
+        int n = sizeof(J_type) / sizeof(J_type[0]);
+        for (int i = 0; i < n; i++) {
+            auto itr = Line.find(J_type[i]);
+            if (itr != string::npos) {
+                type = "J_type";
+                is_set_type = true;
+                break;
+            }
+        }
+        
+     if (!is_set_type) {
+      n = sizeof(I_type) / sizeof(I_type[0]);
         for (int i = 0; i < n; i++) {
             auto itr = Line.find(I_type[i]);
             if (itr != string::npos) {
@@ -95,6 +53,7 @@ bool inst_decode(string Line) {
                 break;
             }
         }
+     }
 
 
     if (!is_set_type) {
@@ -104,6 +63,7 @@ bool inst_decode(string Line) {
             auto itr = Line.find(R_type[i]);
             if (itr != string::npos) {
                 type = "R_type";
+               
                 is_set_type = true;
                 break;
             }
@@ -123,17 +83,7 @@ bool inst_decode(string Line) {
         }
     }
 
-    if (!is_set_type) {
-        n = sizeof(J_type) / sizeof(J_type[0]);
-        for (int i = 0; i < n; i++) {
-            auto itr = Line.find(J_type[i]);
-            if (itr != string::npos) {
-                type = "J_type";
-                is_set_type = true;
-                break;
-            }
-        }
-    }
+    
 
     if (!is_set_type) {
         n = sizeof(Load_type) / sizeof(Load_type[0]);
@@ -161,7 +111,7 @@ bool inst_decode(string Line) {
 
    
 
-
+ 
     //forming the instruction
     int i = 0;
     int j = i + 1;
@@ -176,30 +126,42 @@ bool inst_decode(string Line) {
                 if (j == Line.length() - 1) { j++; }
 
                 if (count == 0) {
-                    inst.opcode = Line.substr(i, j - i);
+                    inst.opcode = trim(Line.substr(i, j - i));
                     
                     count++;
                 }
                 else if (count == 1) {
 
                     if (type == "R_type" || type == "I_type" || type == "J_type" || type == "Load_type") {
-                        auto itr = reg_map.find(Line.substr(i, j - i));
+
                         
-                        if (itr != reg_map.end()) {
-                            inst.rd = itr->second;
-                            
-                        }
-                        else {
-                            return false;
-                        }
+                            auto itr = reg_map.find(Line.substr(i, j - i));
+                        
+                            if (itr != reg_map.end()) {
+                                inst.rd = itr->second;
+                                
+                            }
+                            else {
+                                return false;
+                            }
+                        
+                        
                     }
                     else if(type=="B_type" || type=="Store_type"){
-                        auto itr = reg_map.find(Line.substr(i, j - i));
-                        if (itr != reg_map.end()) {
-                            inst.rs1 = itr->second;
+
+                        if(inst.opcode=="j"){
+                            string temp = trim(Line.substr(i, j - i));
+                            inst.label=temp;
+                            
                         }
-                        else {
-                            return false;
+                        else{
+                            auto itr = reg_map.find(Line.substr(i, j - i));
+                            if (itr != reg_map.end()) {
+                                inst.rs1 = itr->second;
+                            }
+                            else {
+                                return false;
+                            }
                         }
                     }
 
@@ -218,31 +180,42 @@ bool inst_decode(string Line) {
                         }
                     }
                     else if (type == "B_type") {
-                        auto itr = reg_map.find(Line.substr(i, j - i));
-                        if (itr != reg_map.end()) {
-                            inst.rs2 = itr->second;
-                            
-                        }
-                        else {
-                            return false;
+                        if(inst.opcode != "j"){
+                            auto itr = reg_map.find(Line.substr(i, j - i));
+                            if (itr != reg_map.end()) {
+                                inst.rs2 = itr->second;
+                                
+                            }
+                            else {
+                                return false;
+                            }
                         }
                     }
                     else if (type == "J_type") {
                         
                         string temp=Line.substr(i, j - i);
+                        
                         try
-                        {
-                            inst.imd = stoi(temp);
+                        {   if( inst.opcode=="li" && temp.find('x')!=string::npos){
+                                inst.imd = stoi(temp,0,16);
+                                inst.imd=inst.imd-268500992;
+                                reg[inst.rd].isAddr=true;
+                               
+                                if(inst.imd<0){return false;}
+                            }
+                            else{
+                                inst.imd = stoi(temp);
+                            }
                         }
                         catch (const std::exception& e)
                         {   
-                            // if(inst.opcode=="jal"){
-                            //     inst.label=temp;
-                            // }
-                            //else{
-                                 std::cerr << e.what() << '\n';
+                            if(inst.opcode=="jal"){
+                                inst.label=trim(temp);
+                            }
+                            else{
+                                 errors.push_back(e.what()); 
                                  return false;
-                            //}
+                            }
                            
                         }
                     }
@@ -522,13 +495,66 @@ bool execute( instruction inst) {
                 
             }
         }
+        else if (inst.opcode == "ble") {
+            
+
+            if(reg[inst.rs1].var <= reg[inst.rs2].var){
+                auto itr = tags.begin();
+
+                for(;itr!=tags.end();itr++){
+                    if(itr->first==inst.label){
+                        break;
+                    }
+                }
+                
+                if(itr==tags.end()){return false;}
+                
+                
+                pc=itr->second;
+               
+                
+            }
+        }
+        else if (inst.opcode == "j") {          
+           
+                auto itr = tags.begin();
+
+                for(;itr!=tags.end();itr++){
+                    if(itr->first==inst.label){
+                        break;
+                    }
+                }
+                
+                if(itr==tags.end()){return false;}
+                
+                
+                pc=itr->second;
+                           
+        }
         
     }
     else if(inst.type=="J_type"){
          if(inst.opcode=="jal"){
-             temp=pc;
-             pc--;
-             pc=pc+inst.imd;
+             if(inst.label==" "){
+                 temp=pc;
+                 pc--;
+                 pc=pc+inst.imd;
+             }
+             else{
+                 temp=pc;
+                 auto itr = tags.begin();
+
+                for(;itr!=tags.end();itr++){
+                    if(itr->first==inst.label){
+                        break;
+                    }
+                }
+                
+                if(itr==tags.end()){return false;}
+                
+                
+                pc=itr->second;
+             }   
          }
          else if(inst.opcode=="li"){
              temp=inst.imd;
@@ -579,23 +605,74 @@ bool write_back(instruction inst, int mem_wb) {
 }
 
 
+void dataseg_handler(string dataLine){
+   
+   auto itr = dataLine.find(':');
+
+   if(trim(dataLine.substr(0,itr))==".word"){
+       string temp = trim(dataLine.substr(itr+1,dataLine.length()));
+       
+       
+        int i=0;
+       for(int j=0;j<temp.length();j++){
+           
+           if(temp[j]==','|| j==temp.length()-1 || temp[j]==' '){
+               if(j==temp.length()-1){j++;}
+              
+               mem[k]=stoi(trim(temp.substr(i,j)));
+               i=j+1;
+               k++;
+               
+           }
+        
+       }
+   }
+}
 
 
+
+//string input
 void parser(string input) {
 
     input=trim(input);
     stringstream ss(input);
+    
     std::string str;
     vector<pair<int, string>>Lines;
     int inst_number = 1;
     bool isTag=false;
+    bool isDataseg=false;
     int i=0;
+   // std::getline(ss,str,'\n')
 
+   
+    
     while (std::getline(ss,str,'\n'))
-    {   
+    {   str=trim(str);
         if(str.find('#')!=std::string::npos){
             str= trim(str.substr(0,str.find('#')));
+            
         }
+
+        if(str==".data"){
+            
+            isDataseg=true;
+            inst_number++;
+            continue;
+        }
+
+        if(str==".text"){
+            isDataseg=false;
+            inst_number++;
+            continue;
+        }
+
+        if(isDataseg){
+            dataseg_handler(str);
+            inst_number++;
+            continue;
+        }
+        
 
         if (!str.empty() && (str != " ") && (str.find_first_not_of(' ') != std::string::npos)) {
             if(str.find(':') != string::npos){
@@ -652,7 +729,6 @@ void parser(string input) {
     
 }
 
-
 void create_map(map<string, int>& reg_map) {
 
     for (int i = 0; i < 32; i++) {
@@ -664,11 +740,10 @@ void create_map(map<string, int>& reg_map) {
 
 }
 
-
-
 void stimulator(string input) {
     pc = 0;
     create_map(reg_map);
+    //input
     parser(input);
     
 }
