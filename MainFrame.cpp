@@ -106,6 +106,7 @@
 #include "wx/creddlg.h"
 #endif
 
+//#include "Simulator.h"
 
 
 #define MENU_FILE 0
@@ -197,6 +198,11 @@ EVT_CONTEXT_MENU(MainFrame::OnContextMenu)
 EVT_RIGHT_DOWN(MainFrame::OnRightClick)
 #endif
 
+EVT_POWER_SUSPENDING(MainFrame::OnSuspending)
+EVT_POWER_SUSPENDED(MainFrame::OnSuspended)
+EVT_POWER_SUSPEND_CANCEL(MainFrame::OnSuspendCancel)
+EVT_POWER_RESUME(MainFrame::OnResume)
+
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(RegisterGridPanel,wxPanel)
@@ -220,6 +226,15 @@ void RegisterGridPanel::OnHideABIName(wxCommandEvent& eve)
 	else 	regList->SetColumnWidth(1, 100);
 }
 
+void RegisterGridPanel::LoadRegisterGrid()
+{
+		for (int i = 0; i < 32; i++)
+		{
+			//regVal[i]->SetText(wxString::Format("%d",reg[i]));
+			regVal[i]->SetText(wxString::Format("%d",i));
+			regList->SetItem(*regVal[i]);
+		}
+}
 
 MainFrame::MainFrame(wxWindow* parent) :wxFrame(parent, -1, "wxBits", wxDefaultPosition,wxDefaultSize, wxDEFAULT_FRAME_STYLE)
 {
@@ -229,12 +244,44 @@ MainFrame::MainFrame(wxWindow* parent) :wxFrame(parent, -1, "wxBits", wxDefaultP
 	InitFull();
 	allowAutoCompletion = true;
 	isStartPageVisible = true;
+	isConsoleVisible = false;
+
+
 	SetBackgroundColour(*wxWHITE);
 
+	m_powerResourceBlocker = NULL;
+
+	consoleFrame = new wxFrame(this, -1, "Power Log", wxPoint(100, 100), wxSize(700, 700));
+
+	wxTextCtrl* text = new wxTextCtrl(consoleFrame, wxID_ANY, "",
+		wxDefaultPosition, wxDefaultSize,
+		wxTE_MULTILINE | wxTE_READONLY);
+	text->SetSize(consoleFrame->GetClientSize());
+	m_logOld = wxLog::SetActiveTarget(new wxLogTextCtrl(text));
+
+
+	UpdatePowerSettings(wxPOWER_UNKNOWN, wxBATTERY_UNKNOWN_STATE);
+
+	StopLongTask();
+	Bind(wxEVT_COMMAND_MENU_SELECTED,
+		&MainFrame::OnStartTaskClicked, this, wxID_NEW);
+	Bind(wxEVT_COMMAND_MENU_SELECTED,
+		&MainFrame::OnStopTaskClicked, this, wxID_ABORT);
+	m_taskTimer.Bind(wxEVT_TIMER, &MainFrame::OnTaskTimer, this);
 
 
 }
+void MainFrame::OnStartTaskClicked(wxCommandEvent& WXUNUSED(event))
+{
 
+	StartLongTask();
+}
+
+void MainFrame::OnStopTaskClicked(wxCommandEvent& WXUNUSED(event))
+{
+	StopLongTask();
+
+}
 
 
 void MainFrame::InitFull() {
@@ -419,6 +466,8 @@ void MainFrame::InitMenuBar()
 	wxMenuItem* mi_help_kbdsrtc = new wxMenuItem(help, Menu_help_kbdsrtc, "KeyBoard Shortcuts");
 	wxMenuItem* mi_help_more_help = new wxMenuItem(help, Menu_help_more_help, "More Help...");
 	wxMenuItem* mi_help_about = new wxMenuItem(help, Menu_help_about, "About");
+	wxMenuItem* mi_help_start = new wxMenuItem(help, wxID_NEW, "Start");
+	wxMenuItem* mi_help_abort = new wxMenuItem(help, wxID_ABORT, "Abort");
 
 	help->Append(mi_help_getting_started);
 	help->Append(mi_help_tips_tricks);
@@ -428,6 +477,9 @@ void MainFrame::InitMenuBar()
 	help->AppendSeparator();
 	help->Append(mi_help_kbdsrtc);
 	help->Append(mi_help_about);
+	help->AppendSeparator();
+	help->Append(mi_help_start);
+	help->Append(mi_help_abort);
 
 
 
@@ -483,27 +535,7 @@ void MainFrame::InitStatBar() {
 	SetStatusBar(m_statBar);
 
 }
-void MainFrame::CreateAutoCompletionOnAllPages()
-{
-	int tot=mainNote->GetPageCount();
 
-	if (!isStartPageVisible)
-	{
-		for (int i = 0; i < tot; i++)
-		{
-		
-				
-
-		}
-	}
-	else {
-		for (int i = 1; i < tot; i++)
-		{
-			
-		}
-	}
-
-}
 
 
 void MainFrame::InitToolBar() {
@@ -666,7 +698,6 @@ void MainFrame::InitMainNote() {
 	autoCompArray = new wxArrayString();
 	autoCompArray->Add("add");
 	autoCompArray->Add("sub");//------------------------------------------------------ auto comp 
-	CreateAutoCompletionOnAllPages();
 
 }
 void MainFrame::InitRegGrid() {
@@ -696,10 +727,10 @@ void MainFrame::MainNoteAddPage(MainNotePage *pg) {
 	}
 }
 MainNotePage* MainFrame::CreateStartPage() { 
-	return new MainNotePage(mainNote,true);
+	return new MainNotePage(mainNote,true,false);
 }
 MainNotePage* MainFrame::CreateEmptyPage() { 
-	return new MainNotePage(mainNote, false);
+	return new MainNotePage(mainNote, false,allowAutoCompletion);
 }
 void MainFrame::RemovePage() {
 
@@ -783,7 +814,7 @@ void MainFrame::OnDuplicate(wxCommandEvent& eve) {
 	if (index != wxNOT_FOUND)
 	{
 		wxString str=GetPageOnMainNoteIndex(index)->notepad->GetText();
-		MainNotePage* pgtemp = new MainNotePage(mainNote, false);
+		MainNotePage* pgtemp = new MainNotePage(mainNote,true, GetPageOnMainNoteIndex(index)->isAutoOn);
 		pgtemp->notepad->SetText(str);
 		mainNote->AddPage(pgtemp, mainNote->GetPageText(index)+wxString::Format("(%d)",++duplicatesNum));
 		activeNotes++;

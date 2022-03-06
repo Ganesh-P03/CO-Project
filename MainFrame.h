@@ -20,7 +20,9 @@
 //#include "Simulator.h"
 #endif
 
+#include "wx/timer.h"
 
+#include "wx/power.h"
 
 #if defined(__WXMSW__) && wxUSE_TASKBARICON
 #include "wx/taskbar.h"
@@ -186,36 +188,65 @@ public :
 
 };
 
+
+
 class MainNotePage :public wxPanel {
 
 public:
-	MainNotePage(wxWindow* parent, bool isStart) :wxPanel(parent, wxID_ANY, wxDefaultPosition),isStart(isStart)
+	MainNotePage(wxWindow* parent, bool isStart,bool isAutoOn) :wxPanel(parent, wxID_ANY, wxDefaultPosition),isStart(isStart)
 	{
 		int h = GetParent()->GetClientRect().GetHeight();
 		int w = GetParent()->GetClientRect().GetWidth();
 		SetSize(w,h);
 		this->isStart = isStart;
-
+		this->isAutoOn = isAutoOn;
 
 		if (!isStart)
 		{
 			notepad = new wxStyledTextCtrl(this, -1,wxDefaultPosition,wxSize(w,h));
 			notepad->SetCaretLineBackground(*wxBLUE);
+		
 			Update();
 			Refresh();
 		}
 		else{
 			CreateStartPage();
 		}
+
+		if (isAutoOn)
+		{
+			autoComItemList = new wxString("add and addi andi beq bne blt bltu bge bgeu ble data exit globlmain jalr jal li lw or ori sll srl sub sra slti sliu slt sltu sw text word xor  xori");
+			BindAuto();
+		}
+
 	}
 	void CreateStartPage() {
 		wxStaticText* startText = new wxStaticText(this, -1, "Start Text", wxPoint(100,100), wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
 
 	}
+	void BindAuto()
+	{
+		notepad->Bind(wxEVT_STC_CHANGE, [this](wxStyledTextEvent& eve) {
+			wxStyledTextCtrl* stc = (wxStyledTextCtrl*)eve.GetEventObject();
+
+			// Find the word start
+			int currentPos = stc->GetCurrentPos();
+			int wordStartPos = stc->WordStartPosition(currentPos, true);
+
+			// Display the autocompletion list
+			int lenEntered = currentPos - wordStartPos;
+			if (lenEntered > 0)
+			{
+				stc->AutoCompShow(lenEntered,*autoComItemList);
+			}
+			});
+	}
+	//Need to use vector - sorted Insert
 
 	wxStyledTextCtrl* notepad;
 	bool isStart;
-
+	bool isAutoOn;
+	wxString* autoComItemList;
 	
 };
 
@@ -464,14 +495,7 @@ public :
 			regList->SetItem(*regVal[i]);
 		}
 	}
-	void LoadRegisterGrid() {
-		for (int i = 0; i < 32; i++)
-		{
-			//regVal[i]->SetText(wxString::Format("%d",reg[i]));
-			regVal[i]->SetText(wxString::Format("%d",i));
-			regList->SetItem(*regVal[i]);
-		}
-	}
+	void LoadRegisterGrid();
 
 	wxListCtrl* regList;
 	wxListItem** registerName;
@@ -549,7 +573,6 @@ private:
 	void InitMainNote();
 	void InitRegGrid();
 	void InitTreeCtrl();
-	void CreateAutoCompletionOnAllPages();
 	void ManagePropertiesOfNotePad();
 	void ShowTip();
 	void UpdateTreeFrame();
@@ -633,6 +656,87 @@ private:
 	void OnAbout(wxCommandEvent& eve);
 	
 	void OnCloseEvent(wxCloseEvent& eve);
+	void OnStartTaskClicked(wxCommandEvent& WXUNUSED(eve));
+	void OnStopTaskClicked(wxCommandEvent& WXUNUSED(eve));
+
+	void StartLongTask()
+	{
+		m_taskProgress = 0;
+		m_taskTimer.Start(12000);
+		GetMenuBar()->Enable(wxID_NEW, false);
+		GetMenuBar()->Enable(wxID_ABORT, true);
+
+		m_powerResourceBlocker
+			= new wxPowerResourceBlocker(wxPOWER_RESOURCE_SYSTEM);
+
+	}
+
+	void StopLongTask()
+	{
+		GetMenuBar()->Enable(wxID_NEW, true);
+		GetMenuBar()->Enable(wxID_ABORT, false);
+		m_taskTimer.Stop();
+
+		wxDELETE(m_powerResourceBlocker);
+	}
+	void UpdatePowerSettings(wxPowerType powerType, wxBatteryState batteryState)
+	{
+		wxString powerStr;
+		switch (m_powerType = powerType)
+		{
+		case wxPOWER_SOCKET:
+			powerStr = "wall";
+			break;
+
+		case wxPOWER_BATTERY:
+			powerStr = "battery";
+			break;
+
+		default:
+			wxFAIL_MSG("unknown wxPowerType value");
+			wxFALLTHROUGH;
+
+		case wxPOWER_UNKNOWN:
+			powerStr = "psychic";
+			break;
+		}
+
+		wxString batteryStr;
+		switch (m_batteryState = batteryState)
+		{
+		case wxBATTERY_NORMAL_STATE:
+			batteryStr = "charged";
+			break;
+
+		case wxBATTERY_LOW_STATE:
+			batteryStr = "low";
+			break;
+
+		case wxBATTERY_CRITICAL_STATE:
+			batteryStr = "critical";
+			break;
+
+		case wxBATTERY_SHUTDOWN_STATE:
+			batteryStr = "empty";
+			break;
+
+		default:
+			wxFAIL_MSG("unknown wxBatteryState value");
+			wxFALLTHROUGH;
+
+		case wxBATTERY_UNKNOWN_STATE:
+			batteryStr = "unknown";
+			break;
+		}
+	}
+
+	wxLog* m_logOld;
+	wxPowerType m_powerType;
+	wxBatteryState m_batteryState;
+
+	wxTimer m_taskTimer;
+	wxPowerResourceBlocker* m_powerResourceBlocker;
+	int m_taskProgress;
 
 #if USE_CONTEXT_MENU
 	void OnContextMenu(wxContextMenuEvent& eve);
@@ -641,6 +745,47 @@ private:
 #endif
 	void OnToolContextMenu(wxCommandEvent& eve);
 
+#ifdef wxHAS_POWER_EVENTS
+	void OnSuspending(wxPowerEvent& event)
+	{
+		wxLogMessage("System suspend starting...");
+		if (wxMessageBox("Veto suspend?", "Please answer",
+			wxYES_NO, this) == wxYES)
+		{
+			event.Veto();
+			wxLogMessage("Vetoed suspend.");
+		}
+	}
+	void OnTaskTimer(wxTimerEvent& WXUNUSED(event))
+	{
+		++m_taskProgress;
+
+		if (m_taskProgress == 100)
+		{
+			StopLongTask();
+			wxLogMessage("Long running task finished");
+		}
+		else
+		{
+			wxLogMessage("Long running task at %d%%...", m_taskProgress);
+		}
+	}
+
+	void OnSuspended(wxPowerEvent& WXUNUSED(event))
+	{
+		wxLogMessage("System is going to suspend.");
+	}
+
+	void OnSuspendCancel(wxPowerEvent& WXUNUSED(event))
+	{
+		wxLogMessage("System suspend was cancelled.");
+	}
+
+	void OnResume(wxPowerEvent& WXUNUSED(event))
+	{
+		wxLogMessage("System resumed from suspend.");
+	}
+#endif // wxHAS_POWER_EVENTS
 
 	DECLARE_EVENT_TABLE();
 
