@@ -20,26 +20,31 @@
 
 # Note
 
->we are trying to develop a desktop application using wxWidgets
+> we are trying to develop a desktop application using wxWidgets
+
 > While developing we had succesfully made :
+
 1)UI (which can currently be runned on windows)
 2)stimulator which can parse the RISC-V code
->But we are unable to merge both of them after spending so much effort
->We sincerely apologies and need some more time for figure out how to overcome the errors while merging them
+But we are unable to merge both of them after spending so much effort
+We sincerely apologies and need some more time for figure out how to overcome the errors while merging them
 
 # getting started
 
 Download the zip file (or) fork this repository and use `git clone` to clone it on your local desktop
 
 > UI :
+
 1)go to release folder and click on wxBits.exe file
 2)if there is a prompt from windows security click on runanyway
 3)you can see the wxBitsapp running!!
 
 > Debugging :
- 1)if you wat to debug or change the code open debug folder and click on wxBits.sln file
+
+1)if you wat to debug or change the code open debug folder and click on wxBits.sln file
 
 > Stimulator :
+
 1)go to stimulator folder
 2)open input.txt file copy and paste any of the samplecode or bubblesort or type any Risc-V code
 3)open the stimulator.cpp file in vsCode or any editor and run it
@@ -121,8 +126,8 @@ exit:
 
 <p>
     <img src="Images/Code Running-autoComp.bmp" height="600" width=auto>
-    <img src="File-ins.bmp" height="600" width=auto>
-	<img src="Front-Page.bmp" height="600" width=auto>
-	<img src="Log-Console.bmp" height="600" width=auto>
-    <img src="Menu-Items.bmp" height="600" width=auto>
+    <img src="Images/File-ins.bmp" height="600" width=auto>
+	<img src="Images/Front-Page.bmp" height="600" width=auto>
+	<img src="Images/Log-Console.bmp" height="600" width=auto>
+    <img src="Images/Menu-Items.bmp" height="600" width=auto>
 </p>
