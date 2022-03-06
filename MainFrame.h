@@ -17,6 +17,7 @@
 #include <wx/sashwin.h>
 #include <wx/toplevel.h>
 #include "wxBitsStatusBar.h"
+//#include "Simulator.h"
 #endif
 
 
@@ -89,6 +90,9 @@
 #ifdef  wxUSE_LISTCTRL
 #include <wx/listctrl.h>
 #endif
+
+//#include "Simulator.h"
+
 
 //Window id's Used in complete App
 enum Menu_id{
@@ -167,6 +171,7 @@ enum Menu_id{
 
 };
 
+
 class wxBitsTreeCtrl :public wxTreeCtrl {
 public :
 	wxBitsTreeCtrl(wxWindow *parent):wxTreeCtrl(parent,-1,wxDefaultPosition,wxDefaultSize,wxTR_TWIST_BUTTONS) {
@@ -189,9 +194,15 @@ public:
 		int h = GetParent()->GetClientRect().GetHeight();
 		int w = GetParent()->GetClientRect().GetWidth();
 		SetSize(w,h);
+		this->isStart = isStart;
+
+
 		if (!isStart)
 		{
 			notepad = new wxStyledTextCtrl(this, -1,wxDefaultPosition,wxSize(w,h));
+			notepad->SetCaretLineBackground(*wxBLUE);
+			Update();
+			Refresh();
 		}
 		else{
 			CreateStartPage();
@@ -201,9 +212,14 @@ public:
 		wxStaticText* startText = new wxStaticText(this, -1, "Start Text", wxPoint(100,100), wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
 
 	}
+
 	wxStyledTextCtrl* notepad;
 	bool isStart;
+
+	
 };
+
+
 
 class wxBitsFolderTree :public wxFrame {
 public:
@@ -214,7 +230,9 @@ public:
 	bool isTreeLoaded;
 
 };
-
+enum {
+	RegGrid_set_all,RegGrid_hide_dis,RegGrid_hide_abi
+};
 
 class RegisterGridPanel :public wxPanel
 {
@@ -224,30 +242,33 @@ public :
 		int h = GetParent()->GetClientRect().GetHeight();
 		int w = GetParent()->GetClientRect().GetWidth();
 		SetSize(w, h);
-		regList = new wxListCtrl(this, -1,wxDefaultPosition,wxSize(w,h),wxLC_REPORT);
+		regList = new wxListCtrl(this, -1,wxDefaultPosition,wxSize(w,h-150),wxLC_REPORT);
 		regList->AppendColumn("Register");
 		regList->AppendColumn("ABI Name");
 		regList->AppendColumn("Description");
 		regList->AppendColumn("Value ");
 		regList->SetColumnWidth(0, 100);
-		reg = new wxListItem * [32];
+		regList->SetColumnWidth(1, 100);
+		regList->SetColumnWidth(2, 150);
+		registerName = new wxListItem * [32];
 		regVal = new wxListItem * [32];
 		regABIName = new wxListItem * [32];
 		regDesciption = new wxListItem * [32];
+		
 		//regList->EnableAlternateRowColours();
 
 		for (int i = 0; i < 32; i++)
 		{
-			reg[i] = new wxListItem();
+			registerName[i] = new wxListItem();
 			regVal[i] = new wxListItem();
 			regABIName[i] = new wxListItem();
 			regDesciption[i] = new wxListItem();
 
 			if (i == 0)
 			{
-				reg[i]->SetId(i);
-				reg[i]->SetText(wxString::Format("x%d", i));
-				reg[i]->SetColumn(0);
+				registerName[i]->SetId(i);
+				registerName[i]->SetText(wxString::Format("x%d", i));
+				registerName[i]->SetColumn(0);
 
 				regVal[i]->SetId(i);
 				regVal[i]->SetText("");
@@ -263,9 +284,9 @@ public :
 			}
 			else if (i==1)
 			{
-				reg[i]->SetId(i);
-				reg[i]->SetText(wxString::Format("x%d", i));
-				reg[i]->SetColumn(0);
+				registerName[i]->SetId(i);
+				registerName[i]->SetText(wxString::Format("x%d", i));
+				registerName[i]->SetColumn(0);
 
 				regVal[i]->SetId(i);
 				regVal[i]->SetText("");
@@ -281,9 +302,9 @@ public :
 			}
 			else if (i == 2)
 			{
-				reg[i]->SetId(i);
-				reg[i]->SetText(wxString::Format("x%d", i));
-				reg[i]->SetColumn(0);
+				registerName[i]->SetId(i);
+				registerName[i]->SetText(wxString::Format("x%d", i));
+				registerName[i]->SetColumn(0);
 
 				regVal[i]->SetId(i);
 				regVal[i]->SetText("");
@@ -299,9 +320,9 @@ public :
 			}
 			else if (i == 3)
 			{
-				reg[i]->SetId(i);
-				reg[i]->SetText(wxString::Format("x%d", i));
-				reg[i]->SetColumn(0);
+				registerName[i]->SetId(i);
+				registerName[i]->SetText(wxString::Format("x%d", i));
+				registerName[i]->SetColumn(0);
 
 				regVal[i]->SetId(i);
 				regVal[i]->SetText("");
@@ -317,9 +338,9 @@ public :
 			}
 			else if (i == 4)
 			{
-				reg[i]->SetId(i);
-				reg[i]->SetText(wxString::Format("x%d", i));
-				reg[i]->SetColumn(0);
+				registerName[i]->SetId(i);
+				registerName[i]->SetText(wxString::Format("x%d", i));
+				registerName[i]->SetColumn(0);
 
 				regVal[i]->SetId(i);
 				regVal[i]->SetText("");
@@ -335,9 +356,9 @@ public :
 			}
 			else if (i>=5&&i<=7)
 			{
-			reg[i]->SetId(i);
-			reg[i]->SetText(wxString::Format("x%d", i));
-			reg[i]->SetColumn(0);
+				registerName[i]->SetId(i);
+				registerName[i]->SetText(wxString::Format("x%d", i));
+				registerName[i]->SetColumn(0);
 
 			regVal[i]->SetId(i);
 			regVal[i]->SetText("");
@@ -353,9 +374,9 @@ public :
 			}
 			else if (i == 8||i==9)
 			{
-			reg[i]->SetId(i);
-			reg[i]->SetText(wxString::Format("x%d", i));
-			reg[i]->SetColumn(0);
+			registerName[i]->SetId(i);
+			registerName[i]->SetText(wxString::Format("x%d", i));
+			registerName[i]->SetColumn(0);
 
 			regVal[i]->SetId(i);
 			regVal[i]->SetText("");
@@ -371,9 +392,9 @@ public :
 			}
 			else if (i >=10&&i <=17)
 			{
-			reg[i]->SetId(i);
-			reg[i]->SetText(wxString::Format("x%d", i));
-			reg[i]->SetColumn(0);
+			registerName[i]->SetId(i);
+			registerName[i]->SetText(wxString::Format("x%d", i));
+			registerName[i]->SetColumn(0);
 
 			regVal[i]->SetId(i);
 			regVal[i]->SetText("");
@@ -389,9 +410,9 @@ public :
 			}
 			else if (i>=18&& i<=27)
 			{
-			reg[i]->SetId(i);
-			reg[i]->SetText(wxString::Format("x%d", i));
-			reg[i]->SetColumn(0);
+			registerName[i]->SetId(i);
+			registerName[i]->SetText(wxString::Format("x%d", i));
+			registerName[i]->SetColumn(0);
 
 			regVal[i]->SetId(i);
 			regVal[i]->SetText("");
@@ -407,9 +428,9 @@ public :
 			}
 			else
 			{
-			reg[i]->SetId(i);
-			reg[i]->SetText(wxString::Format("x%d", i));
-			reg[i]->SetColumn(0);
+			registerName[i]->SetId(i);
+			registerName[i]->SetText(wxString::Format("x%d", i));
+			registerName[i]->SetColumn(0);
 
 			regVal[i]->SetId(i);
 			regVal[i]->SetText("");
@@ -424,10 +445,14 @@ public :
 			regDesciption[i]->SetColumn(2);
 			}
 
-			regList->InsertItem(*reg[i]);
+			regList->InsertItem(*registerName[i]);
 			regList->SetItem(*regVal[i]);
 			regList->SetItem(*regABIName[i]);
 			regList->SetItem(*regDesciption[i]);
+
+			setAll = new wxButton(this, RegGrid_set_all,"Set",wxPoint(250,h-120));
+			hideDesciption = new wxButton(this, RegGrid_hide_dis, "Hide Description", wxPoint(120, h - 60));
+			hideABIName = new wxButton(this,RegGrid_hide_abi, "Hide ABI", wxPoint(350, h - 60));
 
 		}
 
@@ -436,20 +461,33 @@ public :
 		for (int i = 0; i < 32; i++)
 		{
 			regVal[i]->SetText("0");
+			regList->SetItem(*regVal[i]);
 		}
 	}
-	void LoadRegisterGrid();
+	void LoadRegisterGrid() {
+		for (int i = 0; i < 32; i++)
+		{
+			//regVal[i]->SetText(wxString::Format("%d",reg[i]));
+			regVal[i]->SetText(wxString::Format("%d",i));
+			regList->SetItem(*regVal[i]);
+		}
+	}
 
 	wxListCtrl* regList;
-	wxListItem** reg;
+	wxListItem** registerName;
 	wxListItem** regVal;
 	wxListItem** regABIName;
 	wxListItem** regDesciption;
+
+	void OnSetAllZero(wxCommandEvent& eve);
+	void OnHideDiscription(wxCommandEvent& eve);
+	void OnHideABIName(wxCommandEvent& eve);
 
 	wxButton* setAll;
 	wxButton* hideDesciption;
 	wxButton* hideABIName;
 
+	wxDECLARE_EVENT_TABLE();
 };
 
 class MemoryGridPanel :public wxPanel {
@@ -477,9 +515,12 @@ public:
 	bool isConsoleVisible;                // oNclose event , we need to get parent and update this 
 	bool isTodoListFrmVisible;
 	bool allowGeneric;
+	bool allowAutoCompletion;
 	bool doesContainDir;
+	bool isStartPageVisible;
 private:
 
+	wxArrayString* autoCompArray;
 
 	wxMenu* contextMenu;       //com
 	wxMenu* clipBoardHis;
@@ -491,7 +532,7 @@ private:
 	
 	wxNotebook* mainNote;
 	wxNotebook* registerMainNote;
-	wxPanel* registerGrid;
+	RegisterGridPanel* registerGrid;
 	
 	wxBitsFolderTree* treeFrame;
 	wxFrame* consoleFrame;
@@ -508,6 +549,8 @@ private:
 	void InitMainNote();
 	void InitRegGrid();
 	void InitTreeCtrl();
+	void CreateAutoCompletionOnAllPages();
+	void ManagePropertiesOfNotePad();
 	void ShowTip();
 	void UpdateTreeFrame();
 
@@ -529,14 +572,14 @@ private:
 	void OnUpdateUIMenuViewStat(wxUpdateUIEvent& eve);
 
 
-	void OnRunCode(wxCommandEvent &eve);
-	void OnNewFile(wxCommandEvent& eve);
+	void OnRunCode(wxCommandEvent &eve);//com
+	void OnNewFile(wxCommandEvent& eve);//com
 	void OnNewFolder(wxCommandEvent& eve);
-	void OnOpenFile(wxCommandEvent& eve);
+	void OnOpenFile(wxCommandEvent& eve);//com
 	void OnOpenFolder(wxCommandEvent& eve);
-	void OnDuplicate(wxCommandEvent& eve);
-	void OnClose(wxCommandEvent& eve);
-	void OnCloseAll(wxCommandEvent& eve);
+	void OnDuplicate(wxCommandEvent& eve);//com
+	void OnClose(wxCommandEvent& eve);//com
+	void OnCloseAll(wxCommandEvent& eve);//com
 	void OnUnloadFolder(wxCommandEvent& eve);
 	void OnSave(wxCommandEvent& eve);
 	void OnSaveAs(wxCommandEvent& eve);

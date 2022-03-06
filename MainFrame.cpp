@@ -22,7 +22,7 @@
 #include "wx/sysopt.h"
 #include "wx/notifmsg.h"
 #include "wx/generic/notifmsg.h"
-#include "wx/modalhook.h"
+
 
 #if defined(__WXMSW__) && wxUSE_TASKBARICON
 #include "wx/taskbar.h"
@@ -106,7 +106,6 @@
 #include "wx/creddlg.h"
 #endif
 
-#include "Simulator.h"
 
 
 #define MENU_FILE 0
@@ -124,6 +123,8 @@
 
 #include "AbtDlg.h"
 #include "AppGlobals.h"
+//#include "Simulator.h"
+
 
 BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 
@@ -198,12 +199,36 @@ EVT_RIGHT_DOWN(MainFrame::OnRightClick)
 
 END_EVENT_TABLE()
 
+BEGIN_EVENT_TABLE(RegisterGridPanel,wxPanel)
+EVT_BUTTON(RegGrid_set_all, RegisterGridPanel::OnSetAllZero)
+EVT_BUTTON(RegGrid_hide_dis, RegisterGridPanel::OnHideDiscription)
+EVT_BUTTON(RegGrid_hide_abi, RegisterGridPanel::OnHideABIName)
+END_EVENT_TABLE()
+
+void RegisterGridPanel::OnSetAllZero(wxCommandEvent &eve)
+{
+	SetAllZero();
+}
+void RegisterGridPanel::OnHideDiscription(wxCommandEvent &eve)
+{
+	if(regList->GetColumnWidth(2)!=0){ regList->SetColumnWidth(2, 0); }
+	else 	regList->SetColumnWidth(2, 150);
+}
+void RegisterGridPanel::OnHideABIName(wxCommandEvent& eve)
+{
+	if (regList->GetColumnWidth(1) != 0) { regList->SetColumnWidth(1, 0); }
+	else 	regList->SetColumnWidth(1, 100);
+}
+
+
 MainFrame::MainFrame(wxWindow* parent) :wxFrame(parent, -1, "wxBits", wxDefaultPosition,wxDefaultSize, wxDEFAULT_FRAME_STYLE)
 {
 	Maximize();
 	SetSize(GetSize());
 	CenterOnScreen();
 	InitFull();
+	allowAutoCompletion = true;
+	isStartPageVisible = true;
 	SetBackgroundColour(*wxWHITE);
 
 
@@ -425,7 +450,7 @@ void MainFrame::InitMenuBar()
 	mi_edit_run_code->SetBitmap(missimg_xpm);
 	//mi_file_new_folder->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER, wxS("wxART_MENU")));
 	mi_file_open_folder->SetBitmap(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN, wxS("wxART_MENU_C")));
-	mi_view_fullScreen->SetBitmap(wxBitmap(showBig_xpm));
+	mi_view_fullScreen->SetBitmap(wxArtProvider::GetBitmap(wxART_FULL_SCREEN, wxS("wxART_MENU_C")));
 	mi_edit_goto_line->SetBitmap(wxArtProvider::GetBitmap(wxART_GOTO_FIRST, wxS("wxART_MENU_C")));
 	mi_help_view_help->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP, wxS("wxART_MENU_C")));
 	mi_help_more_help->SetBitmap(wxArtProvider::GetBitmap(wxART_HELP_PAGE, wxS("wxART_MENU_C")));
@@ -458,7 +483,27 @@ void MainFrame::InitStatBar() {
 	SetStatusBar(m_statBar);
 
 }
+void MainFrame::CreateAutoCompletionOnAllPages()
+{
+	int tot=mainNote->GetPageCount();
 
+	if (!isStartPageVisible)
+	{
+		for (int i = 0; i < tot; i++)
+		{
+		
+				
+
+		}
+	}
+	else {
+		for (int i = 1; i < tot; i++)
+		{
+			
+		}
+	}
+
+}
 
 
 void MainFrame::InitToolBar() {
@@ -611,18 +656,25 @@ void MainFrame::UpdateTreeFrame()
 	}
 
 }
+
 void MainFrame::InitMainNote() {
 	int w = GetClientSize().GetWidth();
 	int h = GetClientSize().GetHeight();
 	mainNote = new wxNotebook(this, -1, wxDefaultPosition,wxSize(w-500,h));
 	MainNoteAddPage(CreateStartPage());
 	activeNotes++;
+	autoCompArray = new wxArrayString();
+	autoCompArray->Add("add");
+	autoCompArray->Add("sub");//------------------------------------------------------ auto comp 
+	CreateAutoCompletionOnAllPages();
+
 }
 void MainFrame::InitRegGrid() {
 	int w = GetClientSize().GetWidth();
 	int h = GetClientSize().GetHeight();
 	registerMainNote = new wxNotebook(this, -1, wxPoint(w-500,0), wxSize(500,h));///////////////////////////////////////////////////////////////////////////////////////////
-	registerMainNote->AddPage(new RegisterGridPanel(registerMainNote), "Register", true);
+	registerGrid = new RegisterGridPanel(registerMainNote);
+	registerMainNote->AddPage(registerGrid, "Register", true);
 
 }
 void MainFrame::InitTreeCtrl() {
@@ -640,7 +692,7 @@ void MainFrame::MainNoteAddPage(MainNotePage *pg) {
 		mainNote->AddPage(pg, "Start", true);
     }
 	else {
-		mainNote->AddPage(pg,wxString::Format("Page %d",++activeNotes), true);
+		mainNote->AddPage(pg,wxString::Format("Page %d",++activeNotes),true);
 	}
 }
 MainNotePage* MainFrame::CreateStartPage() { 
@@ -652,6 +704,9 @@ MainNotePage* MainFrame::CreateEmptyPage() {
 void MainFrame::RemovePage() {
 
 	int temp = mainNote->GetSelection();
+
+	if (GetPageOnMainNoteIndex(temp)->isStart)
+		isStartPageVisible = false;
 
 	if (temp!=wxNOT_FOUND)
 	{
@@ -675,9 +730,13 @@ void MainFrame::OnRunCode(wxCommandEvent& eve) {
 
 	if (temp != wxNOT_FOUND)
 	{
+		GetPageOnMainNoteIndex(temp)->notepad->SetEOLMode(wxSTC_EOL_LF);
 		wxString str(GetPageOnMainNoteIndex(temp)->notepad->GetText());
 		wxString newOne(RemoveCommentsInString(str));
-		stimulator(newOne.ToStdString());
+		wxMessageBox("Working Until here");
+		//stimulator(newOne.ToStdString());
+		registerGrid->LoadRegisterGrid();
+		
 	}
 
 }
@@ -688,7 +747,18 @@ void MainFrame::OnNewFolder(wxCommandEvent& eve) {}
 void MainFrame::OnOpenFile(wxCommandEvent& eve) {
 	wxString wildCards = wxString::Format
 	("All files (%s)|%s|ASM files (*.asm)|*.asm",wxFileSelectorDefaultWildcardStr,wxFileSelectorDefaultWildcardStr);
-	OpenFileDlg(wildCards);
+	wxString file=OpenFileDlg(wildCards);
+	wxString* contents = new wxString;
+
+	wxFile* file1 = new wxFile(file);
+	file1->ReadAll(contents);
+
+	MainNoteAddPage(CreateEmptyPage());
+
+	int index=mainNote->GetSelection();
+
+	GetPageOnMainNoteIndex(index)->notepad->SetText(*contents);
+
 }
 void MainFrame::OnOpenFolder(wxCommandEvent& eve) {
 	OpenDirDlg();
@@ -825,6 +895,14 @@ void MainFrame::OnDelete(wxCommandEvent& eve) {
 
 }
 void MainFrame::OnFind(wxCommandEvent& eve) {
+	int index = mainNote->GetSelection();
+
+	if (index != wxNOT_FOUND)
+	{
+		wxStyledTextCtrl *style=GetPageOnMainNoteIndex(index)->notepad;
+	
+	}
+
 
 }
 void MainFrame::OnReplace(wxCommandEvent& eve) {}

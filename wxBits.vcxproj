@@ -23,7 +23,6 @@
     <ClInclude Include="AppGlobals.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Simulator.h" />
     <ClInclude Include="wBitsProperties.h" />
     <ClInclude Include="wxBitsApp.h" />
     <ClInclude Include="wxBitsStatusBar.h" />
