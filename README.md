@@ -33,7 +33,6 @@ li x4,4
 li x5,5
 li x2,3
 li x1,2
-sw x1,0(x2)
 add x1 , x1, x2
 jal x9 , 3
 addi x5 , x5, 10
