@@ -1,1 +1,0 @@
-#include "wBitsProperties.h"
