@@ -124,7 +124,7 @@
 
 #include "AbtDlg.h"
 #include "AppGlobals.h"
-//#include "Simulator.h"
+
 
 
 BEGIN_EVENT_TABLE(MainFrame, wxFrame)
@@ -246,12 +246,13 @@ MainFrame::MainFrame(wxWindow* parent) :wxFrame(parent, -1, "wxBits", wxDefaultP
 	isStartPageVisible = true;
 	isConsoleVisible = false;
 
+	SetIcon(wxArtProvider::GetIcon(wxART_GO_HOME,"wxART_TOOLBAR_C"));
 
 	SetBackgroundColour(*wxWHITE);
 
 	m_powerResourceBlocker = NULL;
 
-	consoleFrame = new wxFrame(this, -1, "Power Log", wxPoint(100, 100), wxSize(700, 700));
+	consoleFrame = new wxFrame(this, -1, "Power Log", wxPoint(100, 100), wxSize(700, 700), wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxRESIZE_BORDER | wxSYSTEM_MENU | wxCAPTION| wxCLIP_CHILDREN);
 
 	wxTextCtrl* text = new wxTextCtrl(consoleFrame, wxID_ANY, "",
 		wxDefaultPosition, wxDefaultSize,
@@ -437,7 +438,7 @@ void MainFrame::InitMenuBar()
 
 
 	//View Main items
-	wxMenuItem* mi_view_console = new wxMenuItem(view, Menu_view_console, "Console", "Interface used to communicate with flow of the program");
+	wxMenuItem* mi_view_console = new wxMenuItem(view, Menu_view_console, "Console", "Interface used to communicate with flow of the program",wxITEM_CHECK);
 	wxMenuItem* mi_view_fullScreen = new wxMenuItem(view, Menu_view_fullscreen, "Full Screen", "Show FullScreen");
 	wxMenuItem* mi_view_iconize = new wxMenuItem(view, Menu_view_iconize, "Iconize", "Iconize the App");
 	wxMenuItem* mi_view_logs = new wxMenuItem(view, Menu_view_logs, "Logs", "Logs the App");
@@ -445,6 +446,7 @@ void MainFrame::InitMenuBar()
 	wxMenuItem* mi_view_statBar = new wxMenuItem(view, Menu_view_statbar, "StatusBar", "Toggle this to decide status of StatusBar", wxITEM_CHECK);
 	wxMenuItem* mi_view_todoList = new wxMenuItem(view, Menu_view_todolist, "TodoList", "Shows All Todo Lists included in the program");
 	wxMenuItem* mi_view_toolBar = new wxMenuItem(view, Menu_view_toolbar, "ToolBar", "Toggle this to decide status of ToolBar", wxITEM_CHECK);
+
 
 
 	view->Append(mi_view_console);
@@ -457,6 +459,13 @@ void MainFrame::InitMenuBar()
 	view->AppendSeparator();
 	view->Append(mi_view_statBar);
 	view->Append(mi_view_toolBar);
+
+	mi_view_console->Check(false);
+	mi_view_statBar->Check(true);
+	mi_view_toolBar->Check(true);
+
+	show_toolBar = true;
+	show_statBar = true;
 
 
 	//Help menu Items
@@ -1005,16 +1014,31 @@ void MainFrame::OnLogs(wxCommandEvent& eve) {}
 void MainFrame::OnToolBar(wxCommandEvent& eve) {
 
 
-	m_toolBar = new wxToolBar(this, -1);
+	bool val = GetMenuBar()->GetMenu(2)->IsChecked(Menu_view_toolbar);
+
+	if (val)
+	{
+		m_toolBar->Show();
+		show_toolBar = true;
+	}
+	else {
+		m_toolBar->Hide();
+		show_toolBar = false;
+	}
+
 }
 void MainFrame::OnStatBar(wxCommandEvent& eve) {
 
-	if (show_statBar)
+	bool val = GetMenuBar()->GetMenu(2)->IsChecked(Menu_view_statbar);
+
+	if (val)
 	{
 		m_statBar->Show();
+		show_statBar = true;
 	}
 	else {
 		m_statBar->Hide();
+		show_statBar = false;
 	}
 
 }
@@ -1022,6 +1046,11 @@ void MainFrame::OnConsole(wxCommandEvent& WXUNUSED(eve)) {
 	if (!isConsoleVisible)
 	{
 		consoleFrame->Show();
+		isConsoleVisible = true;
+	}
+	else {
+		consoleFrame->HideWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
+		isConsoleVisible = false;
 	}
 }
 void MainFrame::OnTodoList(wxCommandEvent& WXUNUSED(eve)) {
@@ -1031,7 +1060,7 @@ void MainFrame::OnTodoList(wxCommandEvent& WXUNUSED(eve)) {
 	}
 }
 void MainFrame::OnFullScreen(wxCommandEvent& eve) {
-	EnableFullScreenView();
+	Maximize();
 }
 void MainFrame::OnMinimize(wxCommandEvent& eve) {
 	Fit();

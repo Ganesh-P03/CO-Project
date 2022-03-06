@@ -23,7 +23,6 @@
     <ClInclude Include="AppGlobals.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Simulator.h" />
     <ClInclude Include="wBitsProperties.h" />
     <ClInclude Include="wxBitsApp.h" />
     <ClInclude Include="wxBitsStatusBar.h" />
@@ -33,7 +32,6 @@
     <ClCompile Include="AbtDlg.cpp" />
     <ClCompile Include="AppGlobals.cpp" />
     <ClCompile Include="MainFrame.cpp" />
-    <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="wBitsProperties.cpp" />
     <ClCompile Include="wxBitsApp.cpp" />
     <ClCompile Include="wxBitsStatusBar.cpp" />

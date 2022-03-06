@@ -93,7 +93,8 @@
 #include <wx/listctrl.h>
 #endif
 
-//#include "Simulator.h"
+#include <wx/commandlinkbutton.h>
+
 
 
 //Window id's Used in complete App
@@ -176,8 +177,13 @@ enum Menu_id{
 
 class wxBitsTreeCtrl :public wxTreeCtrl {
 public :
-	wxBitsTreeCtrl(wxWindow *parent):wxTreeCtrl(parent,-1,wxDefaultPosition,wxDefaultSize,wxTR_TWIST_BUTTONS) {
-		AddRoot("Just waste");
+	wxBitsTreeCtrl(wxWindow *parent):wxTreeCtrl(parent,-1,wxDefaultPosition,wxDefaultSize,wxTR_TWIST_BUTTONS|wxTR_HAS_BUTTONS) {
+		wxTreeItemId parent1=AddRoot("This is a tree Frame");
+		AppendItem(parent1,"and this need ");
+		AppendItem(parent1, "to be reimplemented for 2nd phase");
+		wxTreeItemId child3=AppendItem(parent1, "but for now - it is useless like me in my home");
+		AppendItem(child3, "don't explore everything ");
+
 	}
 	void LoadDirInTree(wxString dir) {
 
@@ -221,8 +227,15 @@ public:
 
 	}
 	void CreateStartPage() {
-		wxStaticText* startText = new wxStaticText(this, -1, "Start Text", wxPoint(100,100), wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+		wxStaticText* startText = new wxStaticText(this, -1, "Start Page -Sorry for not making this start page attractive :)", wxPoint(300,300), wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+		wxCommandLinkButton* link = new wxCommandLinkButton(this, -1, "Github Link", "Link to Github Source code", wxPoint(300, 400));
+		link->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [](wxCommandEvent &eve) {
+			
+			wxLaunchDefaultBrowser("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+			
+			});
 
+	
 	}
 	void BindAuto()
 	{

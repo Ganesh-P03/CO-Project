@@ -7,74 +7,157 @@
 #include<wx/artprov.h>
 #endif //wxUSE_ART_PROVIDER 
 
+static const int BITMAP_SIZE_X = 32;
+
+#ifdef __VISUALC__
+#pragma warning(disable: 4355)
+#endif
+
 enum {
-	STATICBITMAP_BUTTON
+    StatusBar_Checkbox
 };
 
+wxBEGIN_EVENT_TABLE(wxBitsStatusBar, wxStatusBar)
+EVT_SIZE(wxBitsStatusBar::OnSize)
+#if wxUSE_CHECKBOX
+EVT_CHECKBOX(StatusBar_Checkbox, wxBitsStatusBar::OnToggleClock)
+#endif
+#if wxUSE_TIMER
+EVT_TIMER(wxID_ANY, wxBitsStatusBar::OnTimer)
+#endif
+EVT_IDLE(wxBitsStatusBar::OnIdle)
+wxEND_EVENT_TABLE()
+
+static const char* numlockIndicators[] = { "OFF", "NUM" };
+static const char* capslockIndicators[] = { "", "CAPS" };
+
+wxBitsStatusBar::wxBitsStatusBar(wxWindow* parent, long style)
+    : wxStatusBar(parent, wxID_ANY, style, "wxBitsStatusBar")
+#if wxUSE_TIMER
+    , m_timer(this)
+#endif
+#if wxUSE_CHECKBOX
+    , m_checkbox(NULL)
+#endif
+{
+    // compute the size needed for num lock indicator pane
+    wxClientDC dc(this);
+    wxSize sizeNumLock = dc.GetTextExtent(numlockIndicators[0]);
+    sizeNumLock.IncTo(dc.GetTextExtent(numlockIndicators[1]));
+
+    int widths[Field_Max];
+    widths[Field_Text] = -1; // growable
+    widths[Field_Checkbox] = 150;
+    widths[Field_Bitmap] = BITMAP_SIZE_X;
+    widths[Field_NumLockIndicator] = sizeNumLock.x;
+    widths[Field_Clock] = 100;
+    widths[Field_CapsLockIndicator] = dc.GetTextExtent(capslockIndicators[1]).x;
+
+    SetFieldsCount(Field_Max);
+    SetStatusWidths(Field_Max, widths);
+
+#if wxUSE_CHECKBOX
+    m_checkbox = new wxCheckBox(this, StatusBar_Checkbox, "&Toggle clock");
+    m_checkbox->SetValue(true);
+#endif
+
+    m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(green_xpm));
+
+#if wxUSE_TIMER
+    m_timer.Start(1000);
+#endif
+
+    SetMinHeight(wxMax(m_statbmp->GetBestSize().GetHeight(),
+        m_checkbox->GetBestSize().GetHeight()));
+
+    UpdateClock();
+}
 
 #ifdef __VISUALC__
 #pragma warning(default: 4355)
 #endif
 
-wxBitmap* bmp1 = new wxBitmap(red_xpm);
-wxBitmap* bmp2 = new wxBitmap(green_xpm);
-wxBitmap* bmp3 = new wxBitmap(red_xpm);
-
-
-
-BEGIN_EVENT_TABLE(wxBitsStatusBar,wxStatusBar)
-EVT_BUTTON(STATICBITMAP_BUTTON,wxBitsStatusBar::OnShowOrHideClick)
-EVT_SIZE(wxBitsStatusBar::OnSize)
-END_EVENT_TABLE()
-
-wxBitsStatusBar::wxBitsStatusBar(wxWindow* parent):wxStatusBar(parent)
+wxBitsStatusBar::~wxBitsStatusBar()
 {
-	isPowerManagerOn = false;
-	isClockShown = true;
-
-	int x = GetParent()->GetRect().GetWidth();
-
-
-	widths[Field_text] = -1;
-	widths[Field_powBitmap] = bmp1->GetWidth() ;
-	widths[Field_clockbutton] = bmp2->GetWidth();
-	widths[Field_clock] = 100;
-	widths[Field_flag] = bmp3->GetWidth();
-
-	SetFieldsCount(Field_max);
-	SetStatusWidths(Field_max, widths);
-
-	powerOnOffBitmap = new wxStaticBitmap(this, -1, *bmp1);
-	showOrhide = new wxBitmapButton(this,STATICBITMAP_BUTTON, wxArtProvider::GetBitmap(wxART_TICK_MARK, wxS("wxART_BUTTON_C")));
-	IndiaRussiaFlag = new wxStaticBitmap(this, -1, *bmp3);
-
-
+#if wxUSE_TIMER
+    if (m_timer.IsRunning())
+    {
+        m_timer.Stop();
+    }
+#endif
 }
 
-void wxBitsStatusBar::OnShowOrHideClick(wxCommandEvent& eve)
+void wxBitsStatusBar::OnSize(wxSizeEvent& event)
 {
-	wxMessageBox("Nice working !");
+#if wxUSE_CHECKBOX
+    if (!m_checkbox)
+        return;
+#endif
+
+    wxRect rect;
+    if (!GetFieldRect(Field_Checkbox, rect))
+    {
+        event.Skip();
+        return;
+    }
+
+#if wxUSE_CHECKBOX
+    wxRect rectCheck = rect;
+    rectCheck.Deflate(2);
+    m_checkbox->SetSize(rectCheck);
+#endif
+
+    GetFieldRect(Field_Bitmap, rect);
+    wxSize size = m_statbmp->GetSize();
+
+    m_statbmp->Move(rect.x + (rect.width - size.x) / 2,
+        rect.y + (rect.height - size.y) / 2);
+
+    event.Skip();
 }
 
-void wxBitsStatusBar::OnSize(wxSizeEvent &eve)
+void wxBitsStatusBar::OnToggleClock(wxCommandEvent& WXUNUSED(event))
 {
-	ArrangeControlsOnSizeEvemt();
+    DoToggle();
 }
 
-void wxBitsStatusBar::ArrangeControlsOnSizeEvemt()
+void wxBitsStatusBar::OnIdle(wxIdleEvent& event)
 {
-	int tot = GetParent()->GetRect().GetWidth();
+    SetStatusText(numlockIndicators[wxGetKeyState(WXK_NUMLOCK)],
+        Field_NumLockIndicator);
+    SetStatusText(capslockIndicators[wxGetKeyState(WXK_CAPITAL)],
+        Field_CapsLockIndicator);
 
-	int temp = widths[Field_clock] + widths[Field_clockbutton] + widths[Field_flag] + widths[Field_powBitmap];
-	int powoffset = tot - temp;
-	int butffset = powoffset+ widths[Field_powBitmap];
-	int flagoffset = butffset + widths[Field_clock]+widths[Field_clockbutton];
-
-
-	powerOnOffBitmap->SetPosition(wxPoint(powoffset, -1));
-    showOrhide->SetPosition(wxPoint(butffset, -1));
-	IndiaRussiaFlag->SetPosition(wxPoint(flagoffset, -1));
-
-
+    event.Skip();
 }
 
+void wxBitsStatusBar::DoToggle()
+{
+#if wxUSE_CHECKBOX
+    if (m_checkbox->GetValue())
+    {
+#if wxUSE_TIMER
+        m_timer.Start(1000);
+#endif
+
+        m_statbmp->SetIcon(wxIcon(green_xpm));
+
+        UpdateClock();
+    }
+    else // don't show clock
+    {
+#if wxUSE_TIMER
+        m_timer.Stop();
+#endif
+
+        m_statbmp->SetIcon(wxIcon(red_xpm));
+
+        SetStatusText(wxEmptyString, Field_Clock);
+    }
+#endif // wxUSE_CHECKBOX
+}
+
+void wxBitsStatusBar::UpdateClock()
+{
+    SetStatusText(wxDateTime::Now().FormatTime(), Field_Clock);
+}
