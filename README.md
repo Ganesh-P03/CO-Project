@@ -28,7 +28,9 @@
 ### Getting started
 
 >Download the zip file (or) fork this repository and use `git clone` to clone it on your local desktop
+>
 > Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer  Link is also available )
+> 
 > If there is a prompt from Windows security click on runanyway
 > Here you  go-wxBitsapp running!!
 
@@ -39,9 +41,13 @@
 ### Stimulator
 
 > Open Stimulator Folder
+> 
 > Open input.txt file copy and paste any of the samplecode or bubblesort or type any Risc-V code
+> 
 > Open the stimulator.cpp file in vsCode or any editor and run it
+> 
 > You can see a new file in the same stimulator folder named output.txt will be created
+> 
 > **output**.txt files contains the result of execution
 
 ### Implementation
