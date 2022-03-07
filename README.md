@@ -62,7 +62,7 @@ Download the zip file (or) fork this repository and use `git clone` to clone it 
 # Installer
 
 - Link : <a href="/installer/wxBitsInstaller.msi" download="wxBits">wxApp Installer</a>
-- Link : [wxApps Installer]("/installer/wxBitsInstaller.msi")
+- Link : [wxApps Installer](/installer/wxBitsInstaller.msi)
 
 # Implementation
 
