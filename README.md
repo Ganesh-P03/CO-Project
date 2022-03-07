@@ -61,9 +61,7 @@ Download the zip file (or) fork this repository and use `git clone` to clone it 
 
 # Installer
 
-- Link : [wxApps Installer](/installer/wxBitsInstaller.msi)
-- 
-- <a href="https://github.com/Ganesh-P03/CO-Project/blob/master/installer/wxBitsInstaller.msi?raw=true" download="wxBits app">Download</a>
+- Link : [wxApps Installer](https://github.com/Ganesh-P03/CO-Project/blob/master/installer/wxBitsInstaller.msi?raw=true)
 
 # Implementation
 
