@@ -39,7 +39,7 @@ Download the zip file (or) fork this repository and use `git clone` to clone it 
 
 > UI :
 
-1)Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer will be made for window's user on 2nd phase )
+1)Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer  Link is below )
 2)If there is a prompt from Windows security click on runanyway
 3)Here you  go-wxBitsapp running!!
 
@@ -58,6 +58,10 @@ Download the zip file (or) fork this repository and use `git clone` to clone it 
 4)You can see a new file in the same stimulator folder named output.txt will be created
 
 5) **output**.txt files contains the result of execution
+
+# Installer
+
+- Link : <a href="installer/wxBitsInstaller.msi" download>wxApp Installer</a>
 
 # Implementation
 
