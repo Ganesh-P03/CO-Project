@@ -20,41 +20,50 @@
 
 # Note
 
-> we are trying to develop a desktop application using wxWidgets
+> We developed a desktop application using wxWidgets ( initial release -further changes are made in subsequent phases )
 
 > While developing we had succesfully made :
 
-1)UI (which can currently be runned on windows)
-2)stimulator which can parse the RISC-V code
-But we are unable to merge both of them after spending so much effort
-We sincerely apologies and need some more time for figure out how to overcome the errors while merging them
+1)UI (which can currently be runned on windows- for other OS , solution is given below )
 
-# getting started
+2)Stimulator which can parse the RISC-V code
+
+# Problems Faced 
+
+- We are unable to use stimulator built upon standard library with GUI made with wxWidgets , so we are trying for another solution 
+- We had problems with integration of this with Other OS ( especially Mac ) , very soon we will solve this issue , until then we can assure it works on all window version's  but on other OS  is doubt because we lack other OS to check it out 
+
+# Getting started
 
 Download the zip file (or) fork this repository and use `git clone` to clone it on your local desktop
 
 > UI :
 
-1)go to release folder and click on wxBits.exe file
-2)if there is a prompt from windows security click on runanyway
-3)you can see the wxBitsapp running!!
+1)Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer will be made for window's user on 2nd phase )
+2)If there is a prompt from Windows security click on runanyway
+3)Here you  go-wxBitsapp running!!
 
 > Debugging :
 
-1)if you wat to debug or change the code open debug folder and click on wxBits.sln file
+1)If in anycase , .exe files is not supported in your OS, then click on (.sln) file and build solution in release mode (if wxWidgets installed in your system )
 
 > Stimulator :
 
-1)go to stimulator folder
-2)open input.txt file copy and paste any of the samplecode or bubblesort or type any Risc-V code
-3)open the stimulator.cpp file in vsCode or any editor and run it
-4)you can see a new file in the same stimulator folder named output.txt will be created
-5)open output.txt here you can find the result of execution
+1)Open Stimulator Folder
+
+2)Open input.txt file copy and paste any of the samplecode or bubblesort or type any Risc-V code
+
+3)Open the stimulator.cpp file in vsCode or any editor and run it
+
+4)You can see a new file in the same stimulator folder named output.txt will be created
+
+5) **output**.txt files contains the result of execution
 
 # Implementation
 
-1. the code should end with **exit**
-2. Memory is 4byte addressable
+1) The code should end with **exit**
+
+2) Memory is 4byte addressable
 
 # sample code
 
