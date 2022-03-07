@@ -1,15 +1,13 @@
-# CO-Project
+# Computer Organisation Project Semester 4
 
-## Computer Organisation Project Semester 4
+## wxBits app
 
-### wxBits app
-
-> Teamates :
+### Teamates :
 
 1. Ganesh
 2. Nishanth
 
-# commands supported
+### Commands supported
 
 1. "add","slt","sltu","and","or","xor","sll","srl","sub","sra"
 2. "addi","slti","sliu","andi","ori","xori","jalr"
@@ -18,7 +16,7 @@
 5. "lw"
 6. "sw"
 
-# Note
+### Note
 
 > We developed a desktop application using wxWidgets ( initial release -further changes are made in subsequent phases )
 
@@ -28,50 +26,46 @@
 
 2)Stimulator which can parse the RISC-V code
 
-# Problems Faced 
+### Problems Faced 
 
 - We are unable to use stimulator built upon standard library with GUI made with wxWidgets , so we are trying for another solution 
 - We had problems with integration of this with Other OS ( especially Mac ) , very soon we will solve this issue , until then we can assure it works on all window version's  but on other OS  is doubt because we lack other OS to check it out 
 
-# Getting started
+### Getting started
 
 Download the zip file (or) fork this repository and use `git clone` to clone it on your local desktop
 
-> UI :
+#### UI :
 
-1)Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer  Link is also available )
+> Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer  Link is also available )
 
-2)If there is a prompt from Windows security click on runanyway
+> If there is a prompt from Windows security click on runanyway
 
-3)Here you  go-wxBitsapp running!!
+> Here you  go-wxBitsapp running!!
 
-> Debugging :
+#### On Error's :
 
-- If in anycase , .exe files is not supported in your OS, then click on (.sln) file and build solution in release mode (if wxWidgets installed in your system )
+> If in anycase , .exe files is not supported in your OS, then click on (.sln) file and build solution in release mode (if wxWidgets installed in your system )
 
-> Stimulator :
+### Stimulator :
 
-1)Open Stimulator Folder
+> Open Stimulator Folder
 
-2)Open input.txt file copy and paste any of the samplecode or bubblesort or type any Risc-V code
+> Open input.txt file copy and paste any of the samplecode or bubblesort or type any Risc-V code
 
-3)Open the stimulator.cpp file in vsCode or any editor and run it
+> Open the stimulator.cpp file in vsCode or any editor and run it
 
-4)You can see a new file in the same stimulator folder named output.txt will be created
+> You can see a new file in the same stimulator folder named output.txt will be created
 
-5) **output**.txt files contains the result of execution
+> **output**.txt files contains the result of execution
 
-# Installer
-
-- Link : [wxApps Installer](https://github.com/Ganesh-P03/CO-Project/blob/master/installer/wxBitsInstaller.msi?raw=true)
-
-# Implementation
+### Implementation
 
 1) The code should end with **exit**
 
 2) Memory is 4byte addressable
 
-# sample code
+#### Sample code
 
 ```
 main :
@@ -93,7 +87,7 @@ CUSTOM:
 exit
 ```
 
-# bubble sort
+#### bubble sort
 
 ```
 # procedure:    bubbleSort
@@ -136,6 +130,10 @@ exit:
 	exit
 
 ```
+
+### Installer
+
+- Link : [wxApps Installer](https://github.com/Ganesh-P03/CO-Project/blob/master/installer/wxBitsInstaller.msi?raw=true)
 
 ## Screenshots
 
