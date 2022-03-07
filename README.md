@@ -39,13 +39,15 @@ Download the zip file (or) fork this repository and use `git clone` to clone it 
 
 > UI :
 
-1)Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer  Link is below )
+1)Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer  Link is also available )
+
 2)If there is a prompt from Windows security click on runanyway
+
 3)Here you  go-wxBitsapp running!!
 
 > Debugging :
 
-1)If in anycase , .exe files is not supported in your OS, then click on (.sln) file and build solution in release mode (if wxWidgets installed in your system )
+- If in anycase , .exe files is not supported in your OS, then click on (.sln) file and build solution in release mode (if wxWidgets installed in your system )
 
 > Stimulator :
 
