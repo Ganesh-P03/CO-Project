@@ -2,11 +2,6 @@
 
 ## wxBits app
 
-### Teamates :
-
-1. Ganesh
-2. Nishanth
-
 ### Commands supported
 
 1. "add","slt","sltu","and","or","xor","sll","srl","sub","sra"
@@ -19,44 +14,34 @@
 ### Note
 
 > We developed a desktop application using wxWidgets ( initial release -further changes are made in subsequent phases )
-
 > While developing we had succesfully made :
 
-1)UI (which can currently be runned on windows- for other OS , solution is given below )
+1) GUI (which can currently be runned on windows- for other OS , solution is given below )
 
-2)Stimulator which can parse the RISC-V code
+2) Stimulator which can parse the RISC-V code
 
-### Problems Faced 
+### Problems Faced
 
-- We are unable to use stimulator built upon standard library with GUI made with wxWidgets , so we are trying for another solution 
-- We had problems with integration of this with Other OS ( especially Mac ) , very soon we will solve this issue , until then we can assure it works on all window version's  but on other OS  is doubt because we lack other OS to check it out 
+- We are unable to use stimulator built upon standard library with GUI made with wxWidgets , so we are trying for another solution or we can say we made both but not able to fuse them !
+- We had problems with integration of this with Other OS ( especially Mac ) , very soon we will solve this issue , until then we can assure it works on all window version's  but on other OS  is doubt because we lack other OS to check it out
 
 ### Getting started
 
-Download the zip file (or) fork this repository and use `git clone` to clone it on your local desktop
-
-#### UI :
-
+>Download the zip file (or) fork this repository and use `git clone` to clone it on your local desktop
 > Go to release folder and click on wxBits.exe file ( remember only for window's )(Installer  Link is also available )
-
 > If there is a prompt from Windows security click on runanyway
-
 > Here you  go-wxBitsapp running!!
 
-#### On Error's :
+### On Error's
 
 > If in anycase , .exe files is not supported in your OS, then click on (.sln) file and build solution in release mode (if wxWidgets installed in your system )
 
-### Stimulator :
+### Stimulator
 
 > Open Stimulator Folder
-
 > Open input.txt file copy and paste any of the samplecode or bubblesort or type any Risc-V code
-
 > Open the stimulator.cpp file in vsCode or any editor and run it
-
 > You can see a new file in the same stimulator folder named output.txt will be created
-
 > **output**.txt files contains the result of execution
 
 ### Implementation
@@ -67,7 +52,7 @@ Download the zip file (or) fork this repository and use `git clone` to clone it 
 
 #### Sample code
 
-```
+``` asm
 main :
 li x4,4
 li x5,5
@@ -89,7 +74,7 @@ exit
 
 #### bubble sort
 
-```
+``` asm
 # procedure:    bubbleSort
 # Objective:    sort an array of integer elements in nondecreasing order
 # Input:        an address of an array of integers
@@ -104,30 +89,30 @@ array:
 
 main:
 bubbleSort:
-	li     x1,0x10010000
-	li      x2, 0     # i = 0;
-	li      x3, 0      # j = 0;
-	li      x10, 10      # array length
+ li     x1,0x10010000
+ li      x2, 0     # i = 0;
+ li      x3, 0      # j = 0;
+ li      x10, 10      # array length
 loop:
-	beq     x2, x10, exit       # exit if i == length of array -1
-	li     x1,0x10010000
-	li      x3, 0      # j = 0;
-	forLoop:
-		beq     x3,x10,exitForLoop   # exit loop if j==length of array -1
-		lw      x20, 0(x1)         # a0 = array[j]
-		lw      x21, 1(x1)         # a1 = array[j+1]
-		ble     x20, x21, update        # if array[j]<=array[j+1] skip
-		sw      x21, 0(x1)         # a[j+1] = a[j]
-		sw      x20, 1(x1)         # a[j] = a[j+1]
-	update:
-		addi   x3, x3, 1         # j++
-		addi    x1, x1, 1        # point to next element -->
-		j       forLoop
-	exitForLoop:
-		addi   x2, x2, 1  # i++;
-		j   loop
+ beq     x2, x10, exit       # exit if i == length of array -1
+ li     x1,0x10010000
+ li      x3, 0      # j = 0;
+ forLoop:
+  beq     x3,x10,exitForLoop   # exit loop if j==length of array -1
+  lw      x20, 0(x1)         # a0 = array[j]
+  lw      x21, 1(x1)         # a1 = array[j+1]
+  ble     x20, x21, update        # if array[j]<=array[j+1] skip
+  sw      x21, 0(x1)         # a[j+1] = a[j]
+  sw      x20, 1(x1)         # a[j] = a[j+1]
+ update:
+  addi   x3, x3, 1         # j++
+  addi    x1, x1, 1        # point to next element -->
+  j       forLoop
+ exitForLoop:
+  addi   x2, x2, 1  # i++;
+  j   loop
 exit:
-	exit
+ exit
 
 ```
 
@@ -135,12 +120,21 @@ exit:
 
 - Link : [wxApps Installer](https://github.com/Ganesh-P03/CO-Project/blob/master/installer/wxBitsInstaller.msi?raw=true)
 
+### Teamates
+
+1. Ganesh
+2. Nishanth
+
+#### Extra refrences
+
+- [wxWidgets download](https://www.wxwidgets.org/)
+
 ## Screenshots
 
 <p>
     <img src="Images/Code Running-autoComp.bmp" height="600" width=auto>
     <img src="Images/File-ins.bmp" height="600" width=auto>
-	<img src="Images/Front-Page.bmp" height="600" width=auto>
-	<img src="Images/Log-Console.bmp" height="600" width=auto>
+    <img src="Images/Front-Page.bmp" height="600" width=auto>
+    <img src="Images/Log-Console.bmp" height="600" width=auto>
     <img src="Images/Menu-Items.bmp" height="600" width=auto>
 </p>
