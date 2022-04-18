@@ -1,0 +1,7 @@
+
+li     x1,0x10010000
+li x2,10
+sw x2,0(x1)
+lw x3,0(x1)
+add x4,x3,x2
+exit
